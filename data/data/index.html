@@ -1,0 +1,636 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+
+    <title>Tcabezon-#A2</title>
+    <link rel="shortcut icon" href="data/firma.png" />
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Mono:wght@100;150;200;250;300;350;400;500;600;900&family=Roboto:wght@100;400;500;900&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@300;400;500;700;900&family=Noto+Sans:ital@1&display=swap');
+
+        body {
+
+            margin: 0;
+            line-height: normal;
+            font-family: 'Noto Sans Mono', monospace;
+            letter-spacing: 0px;
+            font-weight: 150;
+
+            font-size: 0.9em;
+            text-align: justify;
+            width: 100%;
+        }
+
+        p {
+            text-align: justify;
+            text-justify: inter-word;
+        }
+
+        i {
+            font-style: italic;
+        }
+
+        b {
+            font-weight: 500;
+        }
+
+        h2 {
+            text-decoration: underline;
+        }
+
+        figcaption {
+            font-weight: 500;
+            text-align: center;
+            font-size: 0.8em;
+            padding: 8px;
+            margin-left: 8px;
+        }
+
+        a {
+            text-decoration: none;
+            color: black;
+            font-weight: 350;
+            text-decoration: underline;
+        }
+
+        a:hover {
+            background-color: LavenderBlush;
+            color: black;
+
+            font-weight: 500;
+
+            border: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="content  justify-content-center">
+
+        <div class="container bg-white col-xl-6 col-lg-10 col-md-12">
+
+            <br><br>
+            <br><br>
+            <br><br>
+            <h1 class="text-center"> Gradient Domain Fusion</h1>
+
+            <br>
+
+            <h6 class="text-center">CMU 16-726 Image Synthesis S22 </h6>
+            <h6 class="text-center">Tomas Cabezon Pedroso</h6>
+
+
+            <br>
+
+            <br><br>
+            <p>
+                In this project, we will exprole gradient-domain processing, a simple technique with a broad set
+                of applications
+                including blending, tone-mapping, and non-photorealistic rendering. For this assigment, we will focus
+                on 'Poisson blending', 'mixed gradients' and 'color2gray'.
+
+            </p>
+            <br>
+            <div class="container col-md-11 col-12 align-self-center">
+                <div class="row  align-self-center ">
+                    <div class="col-4 ">
+
+                        <img src="data/data/target_01.jpg" class=' d-block float-top mx-auto d-block img-fluid col-12'>
+                        <figcaption>Original image</figcaption>
+                    </div>
+                    <div class="col-4 ">
+                        <img src="data/output/NaiveBlend_bear.jpg"
+                            class=' d-block float-top mx-auto d-block img-fluid col-12'>
+                        <figcaption>Naive blend</figcaption>
+                    </div>
+                    <div class="col-4 ">
+                        <img src="data/output/PoissonBlend_bear.jpg"
+                            class=' d-block float-top mx-auto d-block img-fluid col-12'>
+                        <figcaption>Poisson blend</figcaption>
+                    </div>
+
+                </div>
+            </div>
+            <br>
+
+
+            <p>
+                The primary goal of this assignment is to seamlessly blend an object or texture from a source image into
+                a target image. The method presented above is called “Poisson blending” and uses the gradients of both
+                of the images that we want to combine to make transition as smooth as possible. This was introduced by
+                Perez et al. in <a
+                    href="http://cs.brown.edu/courses/csci1950-g/asgn/proj2/resources/PoissonImageEditing.pdf"
+                    target="'_blanck">this</a> 2003 paper.
+                <br><br>
+                In the previous image, in the left, we have the target image, in which we want to add another image,
+                what we will
+                call, the source image, in this case, a bear. Next to it, we have the naive blend, a simple
+                copy and paste using a mask. This however, doesn't give good result, therefore, on the right, Poissong
+                blending has been applied.
+            </p>
+            <br>
+            <h2>Process </h2>
+
+            <br><br>
+
+
+            <h3>Gradients</h3>
+            <br>
+            <p>
+                To understand Poisson, blending, first we need to understand what a gradient is. As in calculus, a
+                gradient is the derivative of a function, in this case, the derivative of each pixel. But how do we
+                calculate this? To do so, we have to start by thiking what a derivative is: the rate of change of a
+                function in a given direction. In the case of pixels, this is calculated by
+                comparing the different values of the pixels in a given direction. Let's imagine the following 3x3
+                image with values for the each pixel of [[0, 1, 2],[3, 4, 5],[6, 7, 8]]. The derivatives of the p4 pixel
+                will
+                be defined by its 4 neighbours: p3 to the left, p5 to the
+                right, p0 going up, and p7 going down. So the derivatives can be written as follow:
+            </p>
+
+            <div class="container col-md-10 col-12 align-self-center ">
+                <div class="row align-self-center">
+                    <div class="col-sm-3 col-0"> </div>
+                    <div class="col-sm-3 col-6">
+                        <img src="data/data/image.png" class=' d-block float-top mx-auto d-block img-fluid col-12'>
+                    </div>
+                    <div class='col-sm-4 col-6 d-block mx-auto d-block img-fluid float-center'>
+                        <p>
+                            <i>
+                                <br>
+                                ← p3-p4=3-4=-1 <br>
+                                → p5-p4=5-4=+1<br>
+                                ↑ p1-p4=1-4=-3<br>
+                                ↓ p7-p4=7-4=+3<br>
+                            </i>
+                        </p>
+                    </div>
+                    <div class="col-sm-2 col-0"> </div>
+
+                </div>
+            </div>
+
+            <br><br>
+            <h3>Toy problem</h3>
+            <br>
+            <p>
+                Before implementing the Poisson blending algorithm, we are asked to solve a toy problem. In this example
+                we’ll compute the x and y gradients from an image s, then use all the gradients, plus one pixel
+                intensity, to reconstruct an image v. If the implementation is correct, the output should recover the
+                input image. Let's denote the intensity of the source image at (x, y) as s(x,y)
+                and the values of the image to solve for as v(x,y). For each pixel, then, we have two objectives:
+            <ol>
+                <li> Minimize <b>((v(x+1,y)−v(x,y))−(s(x+1,y)−s(x,y)))<sup>2</sup></b>, so the x-gradients of v should
+                    closely match the x-gradients of s.</li>
+                <br>
+                <li>Minimize <b>((v(x,y+1)−v(x,y))−(s(x,y+1)−s(x,y)))<sup>2</sup></b>, so the y-gradients of v should
+                    closely match the
+                    y-gradients of s.</li>
+
+
+
+            </ol>
+
+            Apart from these twho objectives, we also have to minimize <b>(v(1,1)−s(1,1))<sup>2</sup></b> as the top
+            left corners of the two images should be the same color.
+            <br><br>
+            The result after minimizing the objectives:
+            <br> <br>
+            <img src="data/output/toy.png" class='float-center mx-auto d-block img-fluid col-lg-6 col-sm-8 col-10'>
+            </p>
+            <h3>Poisson blending</h3>
+            <br>
+
+            <p>
+                In order to make a seamless transition between any two images we need to think about the gradients of
+                both of the images rather than about
+                the overall intensity. This problem consists in finding the right values for the target pixels that
+                maximally preserve the gradient of the source region, without changing any of the background pixels.
+                Note that we are making a deliberate decision to ignore the overall intensity, so somo color change
+                could
+                occur, as seen before, a brown bear could turn
+                black, but it would still look like a bear.
+            </p>
+            <br>
+            <div class="container col-sm-10 col-12 align-self-center">
+                <div class="row  align-self-center ">
+                    <div class="col-4 ">
+
+                        <img src="data/data/snow.jpg" class=' d-block float-top mx-auto d-block img-fluid col-12'>
+                        <figcaption>Target image (t)</figcaption>
+                    </div>
+                    <div class="col-4 ">
+                        <img src="data/data/snow_source.jpg"
+                            class=' d-block float-top mx-auto d-block img-fluid col-12'>
+                        <figcaption>Source image (s) </figcaption>
+                    </div>
+                    <div class="col-4 ">
+                        <img src="data/data/snow_mask2.jpg" class=' d-block float-top mx-auto d-block img-fluid col-12'>
+                        <figcaption>Mask (region S)</figcaption>
+                    </div>
+                </div>
+                <br>
+                <div class="row  align-self-center ">
+                    <div class="col-0 "></div>
+                    <div class="col-6 ">
+                        <img src="data/output/NaiveBled_snow2.png"
+                            class=' d-block float-top mx-auto d-block img-fluid col-12'>
+                        <figcaption>Naive blend</figcaption>
+                    </div>
+                    <div class="col-6 ">
+                        <img src="data/output/PoissonBlend_snow_.png"
+                            class=' d-block float-top mx-auto d-block img-fluid col-12'>
+                        <figcaption>Poisson blend</figcaption>
+                    </div>
+                    <div class="col-2 "></div>
+                </div>
+
+            </div>
+            <br>
+            <p>
+                We can formulate our objective as a least squares problem. Given the pixel intensities of the source
+                image “s” and of the target image “t”, we want to solve for new intensity values “v” within the source
+                region “S”:
+                <br><br>
+
+                <img src="data/formula.png" class='float-center mx-auto d-block img-fluid col-lg-8 col-sm-10 col-12'>
+
+                <br>
+                In the previous formula, we can see that we are summating the pixels of the region “S”. This region
+                represents the points of the source image that we want to copy in the target image. For this task, we
+                were given the following <a href="https://github.com/nikhilushinde/cs194-26_proj3_2.2"
+                    target="_blank">code</a>, to create the mask and align it with both the source and target images.
+                In the formula,each “i” is a pixel in the source region “S”, and each “j” is a 4-neighbor of “i”. Each
+                summation
+                guides the gradient values to match those of the source region. In the first summation, the gradient is
+                over two variable pixels; in the second, one pixel is variable and one is in the fixed target region. In
+                the first part, we set the gradients of “v” inside "S" while on the second part, we set the gradients
+                around the boundary of “S".
+                <br><br>
+                To solve for v, we have used the scipy.sparse.linalg.lsqr function. This function minimizes our least
+                squares problem with the form of (Av-b)<sup>2</sup>. It returns the v values that minimize
+                the gradients and that are used to generate the output image.
+            </p>
+            <br>
+            <h3>Results</h3>
+            <br>
+            <h5>Kiki travels</h5>
+            <br>
+            <p>
+                For this example I have tried to take Kiki, my cat, around so she can explore new places. I have used
+                the Poisson blending algorithm to take her with me to CMU on an snowy day. I have also taked her to the
+                beach, a place I could also take myself too...
+                <br><br> Kiki in CMU:
+            </p>
+            <br>
+            <div class="container col-sm-10 col-12 align-self-center">
+                <div class="row  align-self-center ">
+                    <div class="col-4 ">
+
+                        <img src="data/data/kikiCMU.jpg" class=' d-block float-top mx-auto d-block img-fluid col-12'>
+                        <figcaption>Target image (t)</figcaption>
+                    </div>
+                    <div class="col-4 ">
+                        <img src="data/data/kikiCMU_source.jpg"
+                            class=' d-block float-top mx-auto d-block img-fluid col-12'>
+                        <figcaption>Source image (s) </figcaption>
+                    </div>
+                    <div class="col-4 ">
+                        <img src="data/data/kikiBEACH_mask.png"
+                            class=' d-block float-top mx-auto d-block img-fluid col-12'>
+                        <figcaption>Mask (region S)</figcaption>
+                    </div>
+                </div>
+                <br>
+                <div class="row  align-self-center ">
+                    <div class="col-0 "></div>
+                    <div class="col-6 ">
+                        <img src="data/output/NaiveBlend_kikiCMU.jpg"
+                            class=' d-block float-top mx-auto d-block img-fluid col-12'>
+                        <figcaption>Naive blend</figcaption>
+                    </div>
+                    <div class="col-6 ">
+                        <img src="data/output/PoissonBlend_kikiCMU.jpg"
+                            class=' d-block float-top mx-auto d-block img-fluid col-12'>
+                        <figcaption>Poisson blend</figcaption>
+                    </div>
+                    <div class="col-2 "></div>
+                </div>
+
+            </div>
+            <p>
+
+                <br> Kiki in the beach:
+            </p>
+            <br>
+            <div class="container col-sm-10 col-12 align-self-center">
+                <div class="row  align-self-center ">
+                    <div class="col-4 ">
+
+                        <img src="data/data/kikiBEACH_bright.jpg"
+                            class=' d-block float-top mx-auto d-block img-fluid col-12'>
+                        <figcaption>Target image (t)</figcaption>
+                    </div>
+                    <div class="col-4 ">
+                        <img src="data/data/kikiBEACH_source.jpg"
+                            class=' d-block float-top mx-auto d-block img-fluid col-12'>
+                        <figcaption>Source image (s) </figcaption>
+                    </div>
+                    <div class="col-4 ">
+                        <img src="data/data/kikiCMU_mask.png"
+                            class=' d-block float-top mx-auto d-block img-fluid col-12'>
+                        <figcaption>Mask (region S)</figcaption>
+                    </div>
+                </div>
+                <br>
+                <div class="row  align-self-center ">
+                    <div class="col-0 "></div>
+                    <div class="col-6 ">
+                        <img src="data/output/NaiveBlend_kikibeachBrigth.jpg"
+                            class=' d-block float-top mx-auto d-block img-fluid col-12'>
+                        <figcaption>Naive blend</figcaption>
+                    </div>
+                    <div class="col-6 ">
+                        <img src="data/output/PoissonBlend_kikiBeach_bright.jpg"
+                            class=' d-block float-top mx-auto d-block img-fluid col-12'>
+                        <figcaption>Poisson blend</figcaption>
+                    </div>
+                    <div class="col-2 "></div>
+                </div>
+            </div>
+            <br>
+            <p>
+                I am pretty surprised with the results! However, some artifacts can be seen in the image of Kiki at CMU.
+                Between her ears the fence of the tenis court disappears. On the beach case, the output image makes Kiki
+                too dark due to the gradients. Furthermore, the blending is not as good as in the previous image. This
+                is because the background colors matched better in the previous example.
+            </p>
+            <br>
+            <h5>Naruto's Deidara</h5>
+            <br>
+            <p>
+                When I was young I used to read Naruto's comics. Back then I was a fan of one of the characters,
+                Deidara, that had mouths in her hands:
+                <br><br>
+
+                <img src="data/data/deidara.jpg" class='float-center mx-auto d-block img-fluid col-lg-3 col-sm-4 col-6'>
+
+                <br><br>
+                Using this algorithm I have been able to be like her, at least virtually.
+
+            </p>
+            <br>
+            <div class="container col-sm-10 col-12 align-self-center">
+                <div class="row  align-self-center ">
+                    <div class="col-4 ">
+
+                        <img src="data/data/mouth.jpg" class=' d-block float-top mx-auto d-block img-fluid col-12'>
+                        <figcaption>Target image (t)</figcaption>
+                    </div>
+                    <div class="col-4 ">
+                        <img src="data/data/mouth3_source.png"
+                            class=' d-block float-top mx-auto d-block img-fluid col-12'>
+                        <figcaption>Source image (s) </figcaption>
+                    </div>
+                    <div class="col-4 ">
+                        <img src="data/data/mouth_mask.png" class=' d-block float-top mx-auto d-block img-fluid col-12'>
+                        <figcaption>Mask (region S)</figcaption>
+                    </div>
+                </div>
+                <br>
+                <div class="row  align-self-center ">
+                    <div class="col-0 "></div>
+                    <div class="col-6 ">
+                        <img src="data/output/NaiveBlend_mouth3.jpg"
+                            class=' d-block float-top mx-auto d-block img-fluid col-12'>
+                        <figcaption>Naive blend</figcaption>
+                    </div>
+                    <div class="col-6 ">
+                        <img src="data/output/PoissonBlend_mouth3.jpg"
+                            class=' d-block float-top mx-auto d-block img-fluid col-12'>
+                        <figcaption>Poisson blend</figcaption>
+                    </div>
+                    <div class="col-2 "></div>
+                </div>
+
+            </div>
+            <br>
+            <h5>Trying jewelry</h5>
+            <br>
+            <p>
+                I really enjoy designing rings or other kind of wearables, so I thougt that this could be a great
+                opportunity to inquire the possibilities of poisson blending algorithm for trying jewelry.
+
+            </p>
+            <br>
+            <div class="container col-sm-10 col-12 align-self-center">
+                <div class="row  align-self-center ">
+                    <div class="col-4 ">
+
+                        <img src="data/data/ring.jpg" class=' d-block float-top mx-auto d-block img-fluid col-12'>
+                        <figcaption>Target image (t)</figcaption>
+                    </div>
+                    <div class="col-4 ">
+                        <img src="data/data/ring_source.jpg"
+                            class=' d-block float-top mx-auto d-block img-fluid col-12'>
+                        <figcaption>Source image (s) </figcaption>
+                    </div>
+                    <div class="col-4 ">
+                        <img src="data/data/ring_mask.png" class=' d-block float-top mx-auto d-block img-fluid col-12'>
+                        <figcaption>Mask (region S)</figcaption>
+                    </div>
+                </div>
+                <br>
+                <div class="row  align-self-center ">
+                    <div class="col-0 "></div>
+                    <div class="col-6 ">
+                        <img src="data/output/NaiveBlend_ring.jpg"
+                            class=' d-block float-top mx-auto d-block img-fluid col-12'>
+                        <figcaption>Naive blend</figcaption>
+                    </div>
+                    <div class="col-6 ">
+                        <img src="data/output/PoissonBlend_ring_noNeg.jpg"
+                            class=' d-block float-top mx-auto d-block img-fluid col-12'>
+                        <figcaption>Poisson blend</figcaption>
+                    </div>
+                    <div class="col-2 "></div>
+                </div>
+
+            </div>
+            <p>
+
+                <br> I think this is a great tool to create rapid mockup images whithout espending a lot of time on
+                making a perfect mask around the ring. In this example we can also see what we mentioned before, that
+                this algorithm changes the color of the objects. Actually, the color of the silver ring dissapears as it
+                fuses with the color of the skin.
+                <br><br>After seeing this results, I wondered how this algorithm would
+                work with a more complex shape... so I tried it!
+            </p>
+            <br>
+            <div class="container col-sm-10 col-12 align-self-center">
+                <div class="row  align-self-center ">
+                    <div class="col-4 ">
+
+                        <img src="data/data/hand2.jpg" class=' d-block float-top mx-auto d-block img-fluid col-12'>
+                        <figcaption>Target image (t)</figcaption>
+                    </div>
+                    <div class="col-4 ">
+                        <img src="data/data/hand2_source.jpg"
+                            class=' d-block float-top mx-auto d-block img-fluid col-12'>
+                        <figcaption>Source image (s) </figcaption>
+                    </div>
+                    <div class="col-4 ">
+                        <img src="data/data/hand2_mask.png" class=' d-block float-top mx-auto d-block img-fluid col-12'>
+                        <figcaption>Mask (region S)</figcaption>
+                    </div>
+                </div>
+                <br>
+                <div class="row  align-self-center ">
+                    <div class="col-0 "></div>
+                    <div class="col-6 ">
+                        <img src="data/output/NaiveBlend_hand2.jpg"
+                            class=' d-block float-top mx-auto d-block img-fluid col-12'>
+                        <figcaption>Naive blend</figcaption>
+                    </div>
+                    <div class="col-6 ">
+                        <img src="data/output/PoissonBlend_hand2.jpg"
+                            class=' d-block float-top mx-auto d-block img-fluid col-12'>
+                        <figcaption>Poisson blend</figcaption>
+                    </div>
+                    <div class="col-2 "></div>
+                </div>
+            </div>
+            <br>
+            <p>
+                This time the results are not as surprising as before. Mainly because I lost all my hair in the
+                procces due to the blending. To solve this problem, I applied the mixed gradients algorithm in the bells
+                and whistles of this assigment.
+            </p>
+            <br>
+
+
+
+            <br><br>
+            <h2>Bells and Whistles</h2>
+            <br><br>
+            <h3>Mixed gradients</h3>
+            <br>
+            <p>
+
+                To solve the above seen problem, in this section we will implement the mixed gradients algorithm for
+                images where transparency important. In this algorithm we follow the same steps as in Poisson blending,
+                but
+                instead of using the gradients in the source image, we use the gradient with larger magnitude in either
+                source or target image as the guide:
+                <br><br>
+                <img src="data/formula2.png" class='float-center mx-auto d-block img-fluid col-lg-8 col-sm-10 col-12'>
+                <br><br>
+                The results of applying this algorithm to the previous image
+            </p>
+            <br>
+            <div class="container col-12 align-self-center">
+                <div class="row  align-self-center ">
+
+                    <div class="col-4 ">
+                        <img src="data/output/NaiveBlend_hand2.jpg"
+                            class=' d-block float-top mx-auto d-block img-fluid col-12'>
+                        <figcaption>Naive blend</figcaption>
+                    </div>
+                    <div class="col-4 ">
+                        <img src="data/output/PoissonBlend_hand2.jpg"
+                            class=' d-block float-top mx-auto d-block img-fluid col-12'>
+                        <figcaption>Poisson blend</figcaption>
+                    </div>
+                    <div class="col-4 ">
+                        <img src="data/output/MixedBlend_han2.jpg"
+                            class=' d-block float-top mx-auto d-block img-fluid col-12'>
+                        <figcaption>Mixed gradients</figcaption>
+                    </div>
+
+                </div>
+            </div>
+            <br>
+
+            <p>
+                Mixed gradients works very well in this example. Nevertheless, this algorithm makes the source image too
+                transparent. This is something we need to have into account when deciding which algorithm we are going
+                to use. For example in the following images, we can see the results of applying mixed gradients to the
+                Kiki goes to the beach image.
+            </p>
+            <br>
+            <div class="container col-12 align-self-center">
+                <div class="row  align-self-center ">
+
+                    <div class="col-4 ">
+                        <img src="data/output/NaiveBlend_kikibeachBrigth.jpg"
+                            class=' d-block float-top mx-auto d-block img-fluid col-12'>
+                        <figcaption>Naive blend</figcaption>
+                    </div>
+                    <div class="col-4 ">
+                        <img src="data/output/PoissonBlend_kikiBeach_bright.jpg"
+                            class=' d-block float-top mx-auto d-block img-fluid col-12'>
+                        <figcaption>Poisson blend</figcaption>
+                    </div>
+                    <div class="col-4 ">
+                        <img src="data/output/MixedBlend_kikibeach_bright.jpg"
+                            class=' d-block float-top mx-auto d-block img-fluid col-12'>
+                        <figcaption>Mixed gradients</figcaption>
+                    </div>
+
+                </div>
+            </div>
+            <p>
+                Although both of the images are seamlessly blended, when applying this algorithm, the source image may
+                seem to became more transparent, is we zoom in, we can see that the beach can be seen thorugh Kiki's
+                fur. This is because inside the region S, we now also consider the gradients of the target image.
+            </p>
+            <br>
+            <h3>Color2gray</h3>
+            <br>
+            <p>
+
+                For this part of the assigment, we will see another application of these blending algorithms, color2gray
+                transformation. When converting a color image to grayscale (e.g., when printing to a laser printer), we
+                lose the important contrast information, making the image difficult to understand. To see this, we will
+                use the images used for testing color blindness. As it can be seen bellow, when this images are
+                converted into grayscale, no longer show the numbers. To solve this, we are going to use this blending
+                techniques to create a gray image that has similar intensity to the rgb2gray output but mantaining the
+                contrast of the original RGB image.
+                <br><br>
+                To do this, we first convert the RGB image into HSV(Hue Saturation Value) space. In the image bellow we
+                can see the example image as an RGB image on the left, and next to it the correspondent images of each
+                of the HSV channels.
+
+                <br><br>
+                <img src="data/data/hsv.png" class='float-center mx-auto d-block img-fluid  col-sm-10 col-12'>
+                <br><br>
+                In the HSV space, we can examine the color of an image, the intensity of that image and the brightness.
+                The image representing the brightness, is similar to the rgb2version. Therefore, to create our
+                color2gray version, we will use the S and V channels of the image and approach it as a mixed gradients
+                problem. We will use the white pixels of the original image to generate a mask. The results of this
+                color2gray:
+
+                <br><br>
+                <img src="data/output/35.png" class='float-center mx-auto d-block img-fluid  col-sm-10 col-12'>
+                <img src="data/output/8.png" class='float-center mx-auto d-block img-fluid col-sm-10 col-12'>
+                <br>
+                <img src="data/output/5.png" class='float-center mx-auto d-block img-fluid col-sm-10 col-12'>
+                
+                <br><br>
+                
+            </p>
+            <br>
+
+            <br><br><br><br><br><br><br><br>
+        </div>
+</body>
+
+</html>
